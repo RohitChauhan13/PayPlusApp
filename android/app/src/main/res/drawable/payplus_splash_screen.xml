@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="135"
+                android:startColor="#0F172A"
+                android:centerColor="#1D4ED8"
+                android:endColor="#0F766E"
+                android:type="linear" />
+        </shape>
+    </item>
+    <item
+        android:width="180dp"
+        android:height="180dp"
+        android:gravity="center">
+        <drawable android:drawable="@drawable/payplus_splash_logo" />
+    </item>
+</layer-list>
