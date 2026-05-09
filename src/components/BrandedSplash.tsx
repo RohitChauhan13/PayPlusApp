@@ -13,7 +13,7 @@ export function BrandedSplash() {
         </View>
       </View>
       <Text style={styles.brand}>PayPlus</Text>
-      <Text style={styles.copy}>Work. Rates. Commission.</Text>
+      <Text style={styles.copy}>Simple. Fast. Secure.</Text>
       <View style={styles.pill}>
         <Ionicons name="shield-checkmark-outline" size={16} color="#FFFFFF" />
         <Text style={styles.pillText}>Secure ledger ready</Text>
