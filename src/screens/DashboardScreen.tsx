@@ -17,6 +17,13 @@ type DonutSegment = {
   color: string;
 };
 
+type ShareItem = {
+  label: string;
+  value: number;
+  color: string;
+  bg: string;
+};
+
 function DonutChart({
   segments,
   centerLabel,
@@ -104,21 +111,24 @@ export function DashboardScreen() {
   const totalCommission = entries.reduce((sum, item) => sum + Number(item.total_commission || 0), 0);
   const onlineNetAmount = entries.reduce((sum, item) => sum + Number(item.online_net_amount || 0), 0);
   const cashAmount = entries.reduce((sum, item) => sum + Number(item.cash_amount || 0), 0);
-  const salaryAmount = entries.reduce((sum, item) => sum + Number(item.salary_amount || 0), 0);
   const tdsAmount = entries.reduce(
     (sum, item) => sum + (Number(item.online_amount || 0) - Number(item.online_net_amount || 0)),
     0
   );
   const remainingAmount = entries.reduce((sum, item) => sum + Number(item.remaining_amount || 0), 0);
   const receivedAmount = onlineNetAmount + cashAmount;
-  const deductionAmount = totalCommission + tdsAmount + salaryAmount;
+  const shareTotalAmount = onlineNetAmount + cashAmount + totalCommission + tdsAmount + remainingAmount;
   const share = (value: number, total: number) => (total > 0 ? Math.max(4, Math.min(100, (value / total) * 100)) : 0);
   const percent = (value: number, total: number) => `${total > 0 ? ((value / total) * 100).toFixed(1).replace('.0', '') : '0'}%`;
   const onlineShare = share(onlineNetAmount, receivedAmount);
   const cashShare = share(cashAmount, receivedAmount);
-  const commissionShare = share(totalCommission, deductionAmount);
-  const tdsShare = share(tdsAmount, deductionAmount);
-  const salaryShare = share(salaryAmount, deductionAmount);
+  const totalShareItems: ShareItem[] = [
+    { label: 'Online after TDS', value: onlineNetAmount, color: colors.blue, bg: '#DBEAFE' },
+    { label: 'Cash', value: cashAmount, color: colors.teal, bg: '#CCFBF1' },
+    { label: 'Commission', value: totalCommission, color: colors.amber, bg: '#FEF3C7' },
+    { label: 'TDS', value: tdsAmount, color: colors.indigo, bg: '#E0E7FF' },
+    { label: 'Remaining', value: remainingAmount, color: colors.green, bg: '#DCFCE7' }
+  ];
 
   return (
     <View style={commonStyles.screen}>
@@ -196,53 +206,41 @@ export function DashboardScreen() {
         <View style={styles.chartCard}>
           <View style={styles.chartHeader}>
             <View>
-              <Text style={styles.chartTitle}>Deductions</Text>
-              <Text style={styles.chartSub}>Commission, TDS, and salaries</Text>
+              <Text style={styles.chartTitle}>Total share</Text>
+              <Text style={styles.chartSub}>Online, cash, commission, TDS, remaining</Text>
             </View>
             <Text style={styles.chartTotal} numberOfLines={1} adjustsFontSizeToFit>
-              {money(deductionAmount)}
+              {money(shareTotalAmount)}
             </Text>
           </View>
           <View style={styles.chartBody}>
             <DonutChart
-              centerLabel="Deduct"
-              centerValue={money(deductionAmount)}
-              segments={[
-                { label: 'Commission', value: totalCommission, color: colors.amber },
-                { label: 'TDS', value: tdsAmount, color: colors.indigo },
-                { label: 'Salaries', value: salaryAmount, color: colors.rose }
-              ]}
+              centerLabel="Share"
+              centerValue={money(shareTotalAmount)}
+              segments={totalShareItems}
             />
             <View style={styles.legendStack}>
-              {[
-                ['Commission', totalCommission, colors.amber, '#FEF3C7'],
-                ['TDS', tdsAmount, colors.indigo, '#E0E7FF'],
-                ['Salaries', salaryAmount, colors.rose, '#FFE4E6']
-              ].map(([label, value, color, bg]) => (
-                <View key={label as string} style={styles.legendCard}>
-                  <View style={[styles.legendIcon, { backgroundColor: bg as string }]}>
-                    <View style={[styles.legendDot, { backgroundColor: color as string }]} />
+              {totalShareItems.map((item) => (
+                <View key={item.label} style={styles.legendCard}>
+                  <View style={[styles.legendIcon, { backgroundColor: item.bg }]}>
+                    <View style={[styles.legendDot, { backgroundColor: item.color }]} />
                   </View>
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.legendLabel}>{label as string}</Text>
-                    <Text style={styles.legendPercent}>{percent(value as number, deductionAmount)}</Text>
+                    <Text style={styles.legendLabel}>{item.label}</Text>
+                    <Text style={styles.legendPercent}>{percent(item.value, shareTotalAmount)}</Text>
                   </View>
                 </View>
               ))}
             </View>
           </View>
-          {[
-            ['Commission', totalCommission, commissionShare, colors.amber],
-            ['TDS', tdsAmount, tdsShare, colors.indigo],
-            ['Salaries', salaryAmount, salaryShare, colors.rose]
-          ].map(([label, value, width, color]) => (
-            <View key={label as string} style={styles.deductionRow}>
+          {totalShareItems.map((item) => (
+            <View key={item.label} style={styles.deductionRow}>
               <View style={styles.deductionTop}>
-                <Text style={styles.deductionName}>{label as string}</Text>
-                <Text style={styles.deductionValue}>{money(value as number)}</Text>
+                <Text style={styles.deductionName}>{item.label}</Text>
+                <Text style={styles.deductionValue}>{money(item.value)}</Text>
               </View>
               <View style={styles.deductionTrack}>
-                <View style={[styles.deductionFill, { width: `${width as number}%`, backgroundColor: color as string }]} />
+                <View style={[styles.deductionFill, { width: `${share(item.value, shareTotalAmount)}%`, backgroundColor: item.color }]} />
               </View>
             </View>
           ))}
